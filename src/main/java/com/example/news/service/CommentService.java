@@ -19,7 +19,7 @@ public class CommentService {
 
 	private final CommentRepository commentRepository;
 	private final NewsRepository newsRepository;
-	private final AuthorsService authorsService;
+	private final UsersService usersService;
 
 	public List<CommentEntity> findAllByNewsId(Long newsId) {
 		validateNewsId(newsId);
@@ -33,7 +33,7 @@ public class CommentService {
 
 	public CommentEntity create(CommentEntity commentEntity) {
 		validateNewsId(commentEntity.getNews().getId());
-		authorsService.findById(commentEntity.getAuthor().getId());
+		usersService.findById(commentEntity.getAuthor().getId());
 		return commentRepository.save(commentEntity);
 	}
 

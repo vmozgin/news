@@ -1,4 +1,4 @@
-package com.example.news.model.author;
+package com.example.news.model.user;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AuthorRequest {
+public class UserRequest {
 
 	@NotBlank(message = "Поле 'name' не заполнено")
 	private String name;

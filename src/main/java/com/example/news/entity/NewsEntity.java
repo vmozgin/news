@@ -30,7 +30,7 @@ public class NewsEntity {
 	private String description;
 	@ManyToOne
 	@JoinColumn(name = "author_id", nullable = false)
-	private AuthorEntity author;
+	private UserEntity author;
 	@ManyToOne
 	@JoinColumn(name = "category_id", nullable = false)
 	private CategoryEntity category;

@@ -1,12 +1,12 @@
 package com.example.news.controller;
 
-import com.example.news.entity.AuthorEntity;
-import com.example.news.mapper.AuthorMapper;
+import com.example.news.entity.UserEntity;
+import com.example.news.mapper.UserMapper;
 import com.example.news.model.ErrorResponse;
-import com.example.news.model.author.AuthorListResponse;
-import com.example.news.model.author.AuthorRequest;
-import com.example.news.model.author.AuthorResponse;
-import com.example.news.service.AuthorsService;
+import com.example.news.model.user.UserListResponse;
+import com.example.news.model.user.UserRequest;
+import com.example.news.model.user.UserResponse;
+import com.example.news.service.UsersService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -31,22 +31,22 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api/author")
+@RequestMapping("/api/user")
 @Validated
 @RequiredArgsConstructor
-public class AuthorsController {
+public class UsersController {
 
-	private final AuthorsService authorsService;
-	private final AuthorMapper authorMapper;
+	private final UsersService usersService;
+	private final UserMapper userMapper;
 
 	@Operation(
-			summary = "Получение списка всех авторов"
+			summary = "Получение списка всех пользователей"
 	)
 	@ApiResponses({
 			@ApiResponse(
 					responseCode = "200",
 					content = {
-							@Content(schema = @Schema(implementation = AuthorResponse.class), mediaType = "application/json")
+							@Content(schema = @Schema(implementation = UserResponse.class), mediaType = "application/json")
 					}
 			),
 			@ApiResponse(
@@ -57,22 +57,22 @@ public class AuthorsController {
 			)
 	})
 	@GetMapping
-	public ResponseEntity<AuthorListResponse> findAll(
+	public ResponseEntity<UserListResponse> findAll(
 			@RequestParam Integer pageNumber,
 			@Min(value = 1, message = "Значение 'pageSize' должно быть больше 0") @RequestParam Integer pageSize
 	) {
 		Pageable pageable = PageRequest.of(pageNumber, pageSize);
-		return ResponseEntity.ok(authorMapper.authorListEntityToAuthorListResponse(authorsService.findAll(pageable)));
+		return ResponseEntity.ok(userMapper.userListEntityToUserListResponse(usersService.findAll(pageable)));
 	}
 
 	@Operation(
-			summary = "Добавление автора"
+			summary = "Добавление пользователя"
 	)
 	@ApiResponses({
 			@ApiResponse(
 					responseCode = "200",
 					content = {
-							@Content(schema = @Schema(implementation = AuthorResponse.class), mediaType = "application/json")
+							@Content(schema = @Schema(implementation = UserResponse.class), mediaType = "application/json")
 					}
 			),
 			@ApiResponse(
@@ -83,20 +83,20 @@ public class AuthorsController {
 			)
 	})
 	@PostMapping
-	public ResponseEntity<AuthorResponse> create(@RequestBody @Valid AuthorRequest authorRequest) {
-		AuthorEntity newAuthor = authorsService.create(authorMapper.authorRequestToAuthorEntity(authorRequest));
+	public ResponseEntity<UserResponse> create(@RequestBody @Valid UserRequest userRequest) {
+		UserEntity newUser = usersService.create(userMapper.userRequestToUserEntity(userRequest));
 		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(authorMapper.authorEntityToAuthorResponse(newAuthor));
+				.body(userMapper.userEntityToUserResponse(newUser));
 	}
 
 	@Operation(
-			summary = "Обновление автора"
+			summary = "Обновление пользователя"
 	)
 	@ApiResponses({
 			@ApiResponse(
 					responseCode = "200",
 					content = {
-							@Content(schema = @Schema(implementation = AuthorResponse.class), mediaType = "application/json")
+							@Content(schema = @Schema(implementation = UserResponse.class), mediaType = "application/json")
 					}
 			),
 			@ApiResponse(
@@ -107,13 +107,14 @@ public class AuthorsController {
 			)
 	})
 	@PutMapping("/{id}")
-	public ResponseEntity<AuthorResponse> update(@PathVariable Long id, @RequestBody @Valid AuthorRequest request) {
-		AuthorEntity authorEntity = authorMapper.authorRequestToAuthorEntity(request);
-		return ResponseEntity.ok(authorMapper.authorEntityToAuthorResponse(authorsService.update(id, authorEntity)));
+	public ResponseEntity<UserResponse> update(@PathVariable Long id, @RequestBody @Valid UserRequest request) {
+		UserEntity userEntity = userMapper.userRequestToUserEntity(request);
+		return ResponseEntity.ok(userMapper.userEntityToUserResponse(usersService.update(id,
+				userEntity)));
 	}
 
 	@Operation(
-			summary = "Удаление автора"
+			summary = "Удаление пользователя"
 	)
 	@ApiResponses({
 			@ApiResponse(
@@ -128,12 +129,12 @@ public class AuthorsController {
 	})
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
-		authorsService.delete(id);
+		usersService.delete(id);
 		return ResponseEntity.ok().build();
 	}
 
 	@Operation(
-			summary = "Получение автора по id"
+			summary = "Получение пользователя по id"
 	)
 	@ApiResponses({
 			@ApiResponse(
@@ -141,7 +142,7 @@ public class AuthorsController {
 			)
 	})
 	@GetMapping("/{id}")
-	public ResponseEntity<AuthorResponse> findById(@PathVariable Long id) {
-		return ResponseEntity.ok(authorMapper.authorEntityToAuthorResponse(authorsService.findById(id)));
+	public ResponseEntity<UserResponse> findById(@PathVariable Long id) {
+		return ResponseEntity.ok(userMapper.userEntityToUserResponse(usersService.findById(id)));
 	}
 }

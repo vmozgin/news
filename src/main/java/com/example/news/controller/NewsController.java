@@ -182,7 +182,7 @@ public class NewsController {
 			)
 	})
 	@PostMapping("/filter")
-	public ResponseEntity<NewsListResponse> filterBy(@Valid NewsFilter filter) {
+	public ResponseEntity<NewsListResponse> filterBy(@Valid @RequestBody NewsFilter filter) {
 		return ResponseEntity.ok(newsMapper.newsListEntityToNewsListResponse(newsService.filterBy(filter)));
 	}
 }

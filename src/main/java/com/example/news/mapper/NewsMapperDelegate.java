@@ -3,14 +3,14 @@ package com.example.news.mapper;
 import com.example.news.entity.NewsEntity;
 import com.example.news.model.news.NewsRequest;
 import com.example.news.model.news.NewsUpdateRequest;
-import com.example.news.service.AuthorsService;
+import com.example.news.service.UsersService;
 import com.example.news.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public abstract class NewsMapperDelegate implements NewsMapper{
 
 	@Autowired
-	private AuthorsService authorsService;
+	private UsersService usersService;
 	@Autowired
 	private CategoryService categoryService;
 
@@ -20,7 +20,7 @@ public abstract class NewsMapperDelegate implements NewsMapper{
 		entity.setTitle(source.getTitle());
 		entity.setDescription(source.getDescription());
 		entity.setCategory(categoryService.findById(source.getCategoryId()));
-		entity.setAuthor(authorsService.findById(source.getAuthorId()));
+		entity.setAuthor(usersService.findById(source.getAuthorId()));
 
 		return entity;
 	}
