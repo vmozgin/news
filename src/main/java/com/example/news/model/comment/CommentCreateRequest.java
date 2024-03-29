@@ -13,7 +13,4 @@ public class CommentCreateRequest {
 	private Long newsId;
 	@NotBlank(message = "Поле 'text' не должно быть пустым")
 	private String text;
-	@NotNull(message = "Поле 'authorId' не должно быть пустым")
-	@Positive(message = "Поле 'authorId' должно быть больше 0")
-	private Long authorId;
 }

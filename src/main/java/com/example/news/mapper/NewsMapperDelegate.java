@@ -15,12 +15,12 @@ public abstract class NewsMapperDelegate implements NewsMapper{
 	private CategoryService categoryService;
 
 	@Override
-	public NewsEntity newsRequestToNewsEntity(NewsRequest source) {
+	public NewsEntity newsRequestToNewsEntity(NewsRequest source, Long authorId) {
 		NewsEntity entity = new NewsEntity();
 		entity.setTitle(source.getTitle());
 		entity.setDescription(source.getDescription());
 		entity.setCategory(categoryService.findById(source.getCategoryId()));
-		entity.setAuthor(usersService.findById(source.getAuthorId()));
+		entity.setAuthor(usersService.findById(authorId));
 
 		return entity;
 	}

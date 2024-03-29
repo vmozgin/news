@@ -1,5 +1,6 @@
 package com.example.news.controller;
 
+import com.example.news.aop.CheckNewsPermission;
 import com.example.news.entity.NewsEntity;
 import com.example.news.mapper.NewsMapper;
 import com.example.news.model.ErrorResponse;
@@ -9,6 +10,7 @@ import com.example.news.model.news.NewsRequest;
 import com.example.news.model.news.NewsResponse;
 import com.example.news.model.news.NewsUpdateRequest;
 import com.example.news.model.news.NewsWithoutCommentsResponse;
+import com.example.news.security.AppUserPrincipal;
 import com.example.news.service.NewsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,12 +19,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -55,6 +58,7 @@ public class NewsController {
 			)
 	})
 	@GetMapping
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER', 'ROLE_MODERATOR')")
 	public ResponseEntity<NewsListResponse> findAll(
 			@RequestParam Integer pageNumber,
 			@Min(value = 1, message = "Значение 'pageSize' должно быть больше 0") @RequestParam Integer pageSize
@@ -81,8 +85,11 @@ public class NewsController {
 			)
 	})
 	@PostMapping
-	public ResponseEntity<NewsWithoutCommentsResponse> create(@Valid @RequestBody NewsRequest newsRequest) {
-		NewsEntity newNews = newsService.create(newsMapper.newsRequestToNewsEntity(newsRequest));
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER', 'ROLE_MODERATOR')")
+	public ResponseEntity<NewsWithoutCommentsResponse> create(@Valid @RequestBody NewsRequest newsRequest,
+															  @AuthenticationPrincipal AppUserPrincipal userDetails
+	) {
+		NewsEntity newNews = newsService.create(newsMapper.newsRequestToNewsEntity(newsRequest, userDetails.getId()));
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(newsMapper.newsEntityToNewsWithoutCommentsResponse(newNews));
 	}
@@ -111,13 +118,14 @@ public class NewsController {
 			)
 	})
 	@PutMapping("/{id}")
+	@CheckNewsPermission
+	@PreAuthorize("hasAnyRole('ROLE_USER')")
 	public ResponseEntity<NewsWithoutCommentsResponse> update(
 			@PathVariable Long id,
-			@Valid @RequestBody NewsUpdateRequest newsUpdateRequest,
-			@NotNull @RequestParam Long authorId
+			@Valid @RequestBody NewsUpdateRequest newsUpdateRequest
 	) {
 		NewsEntity newNews = newsMapper.newsUpdateRequestToNewsEntity(newsUpdateRequest);
-		return ResponseEntity.ok(newsMapper.newsEntityToNewsWithoutCommentsResponse(newsService.update(id, newNews, authorId)));
+		return ResponseEntity.ok(newsMapper.newsEntityToNewsWithoutCommentsResponse(newsService.update(id, newNews)));
 	}
 
 	@Operation(
@@ -138,6 +146,7 @@ public class NewsController {
 			)
 	})
 	@GetMapping("/{id}")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER', 'ROLE_MODERATOR')")
 	public ResponseEntity<NewsResponse> findById(
 			@PathVariable Long id
 	) {
@@ -165,11 +174,12 @@ public class NewsController {
 			)
 	})
 	@DeleteMapping("/{id}")
+	@CheckNewsPermission
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER', 'ROLE_MODERATOR')")
 	public ResponseEntity<Void> delete(
-			@PathVariable Long id,
-			@RequestParam Long authorId
+			@PathVariable Long id
 	) {
-		newsService.delete(id, authorId);
+		newsService.delete(id);
 		return ResponseEntity.ok().build();
 	}
 
@@ -181,6 +191,7 @@ public class NewsController {
 					responseCode = "200"
 			)
 	})
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER', 'ROLE_MODERATOR')")
 	@PostMapping("/filter")
 	public ResponseEntity<NewsListResponse> filterBy(@Valid @RequestBody NewsFilter filter) {
 		return ResponseEntity.ok(newsMapper.newsListEntityToNewsListResponse(newsService.filterBy(filter)));

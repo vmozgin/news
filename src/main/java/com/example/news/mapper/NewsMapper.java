@@ -47,7 +47,7 @@ public interface NewsMapper {
 		return newsCountCommentsResponse;
 	}
 
-	NewsEntity newsRequestToNewsEntity(NewsRequest source);
+	NewsEntity newsRequestToNewsEntity(NewsRequest source, Long authorId);
 
 	NewsEntity newsUpdateRequestToNewsEntity(NewsUpdateRequest source);
 

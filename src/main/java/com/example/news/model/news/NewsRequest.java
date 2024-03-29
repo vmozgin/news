@@ -14,9 +14,6 @@ public class NewsRequest {
 	private String title;
 	@NotBlank(message = "Поле 'description' не заполнено")
 	private String description;
-	@NotNull(message = "Поле 'authorId' не заполнено")
-	@Positive(message = "Значение 'authorId' должно быть больше 0")
-	private Long authorId;
 	@NotNull(message = "Поле 'categoryId' не заполнено")
 	@Positive(message = "Значение 'categoryId' должно быть больше 0")
 	private Long categoryId;

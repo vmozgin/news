@@ -1,5 +1,6 @@
 package com.example.news.controller;
 
+import com.example.news.aop.CheckCommentPermission;
 import com.example.news.entity.CommentEntity;
 import com.example.news.mapper.CommentMapper;
 import com.example.news.model.ErrorResponse;
@@ -7,6 +8,7 @@ import com.example.news.model.comment.CommentCreateRequest;
 import com.example.news.model.comment.CommentListResponse;
 import com.example.news.model.comment.CommentResponse;
 import com.example.news.model.comment.CommentUpdateRequest;
+import com.example.news.security.AppUserPrincipal;
 import com.example.news.service.CommentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -14,10 +16,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,6 +59,7 @@ public class CommentController {
 			)
 	})
 	@GetMapping
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER', 'ROLE_MODERATOR')")
 	public ResponseEntity<CommentListResponse> findAllByNewsId(@RequestParam Long newsId ) {
 		return ResponseEntity.ok(commentMapper.commentListEntityToCommentListResponse(commentService.findAllByNewsId(newsId)));
 	}
@@ -78,11 +82,15 @@ public class CommentController {
 			)
 	})
 	@PostMapping
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER', 'ROLE_MODERATOR')")
 	public ResponseEntity<CommentResponse> create(
-			@Valid @RequestBody CommentCreateRequest commentCreateRequest
-	) {
+			@Valid @RequestBody CommentCreateRequest commentCreateRequest,
+			@AuthenticationPrincipal AppUserPrincipal userDetails
+			) {
 		CommentEntity newComment = commentService.create(commentMapper.commentCreateRequestToCommentEntity(
-				commentCreateRequest));
+				commentCreateRequest,
+				userDetails.getId()
+		));
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(commentMapper.commentEntityToCommentResponse(newComment));
 	}
@@ -111,13 +119,14 @@ public class CommentController {
 			)
 	})
 	@PutMapping("/{id}")
+	@PreAuthorize("hasAnyRole('ROLE_USER')")
+	@CheckCommentPermission
 	public ResponseEntity<CommentResponse> update(
 			@PathVariable Long id,
-			@Valid @RequestBody CommentUpdateRequest request,
-			@NotNull @RequestParam Long authorId
+			@Valid @RequestBody CommentUpdateRequest request
 	) {
 		CommentEntity commentEntity = commentMapper.commentUpdateRequestToCommentEntity(request, id);
-		return ResponseEntity.ok(commentMapper.commentEntityToCommentResponse(commentService.update(id, commentEntity, authorId)));
+		return ResponseEntity.ok(commentMapper.commentEntityToCommentResponse(commentService.update(id, commentEntity)));
 	}
 
 	@Operation(
@@ -138,6 +147,7 @@ public class CommentController {
 			)
 	})
 	@GetMapping("/{id}")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER', 'ROLE_MODERATOR')")
 	public ResponseEntity<CommentResponse> findById(@PathVariable Long id) {
 		return ResponseEntity.ok(commentMapper.commentEntityToCommentResponse(commentService.findById(id)));
 	}
@@ -163,8 +173,10 @@ public class CommentController {
 			)
 	})
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> delete(@PathVariable Long id, @RequestParam Long authorId) {
-		commentService.delete(id, authorId);
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER', 'ROLE_MODERATOR')")
+	@CheckCommentPermission
+	public ResponseEntity<Void> delete(@PathVariable Long id) {
+		commentService.delete(id);
 		return ResponseEntity.ok().build();
 	}
 }

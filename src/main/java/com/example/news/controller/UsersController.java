@@ -1,5 +1,6 @@
 package com.example.news.controller;
 
+import com.example.news.aop.CheckUserRole;
 import com.example.news.entity.UserEntity;
 import com.example.news.mapper.UserMapper;
 import com.example.news.model.ErrorResponse;
@@ -19,6 +20,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,7 +58,9 @@ public class UsersController {
 					}
 			)
 	})
+
 	@GetMapping
+	@PreAuthorize("hasRole('ROLE_ADMIN')")
 	public ResponseEntity<UserListResponse> findAll(
 			@RequestParam Integer pageNumber,
 			@Min(value = 1, message = "Значение 'pageSize' должно быть больше 0") @RequestParam Integer pageSize
@@ -107,6 +111,8 @@ public class UsersController {
 			)
 	})
 	@PutMapping("/{id}")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER', 'ROLE_MODERATOR')")
+	@CheckUserRole
 	public ResponseEntity<UserResponse> update(@PathVariable Long id, @RequestBody @Valid UserRequest request) {
 		UserEntity userEntity = userMapper.userRequestToUserEntity(request);
 		return ResponseEntity.ok(userMapper.userEntityToUserResponse(usersService.update(id,
@@ -128,6 +134,8 @@ public class UsersController {
 			)
 	})
 	@DeleteMapping("/{id}")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER', 'ROLE_MODERATOR')")
+	@CheckUserRole
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		usersService.delete(id);
 		return ResponseEntity.ok().build();
@@ -142,6 +150,8 @@ public class UsersController {
 			)
 	})
 	@GetMapping("/{id}")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER', 'ROLE_MODERATOR')")
+	@CheckUserRole
 	public ResponseEntity<UserResponse> findById(@PathVariable Long id) {
 		return ResponseEntity.ok(userMapper.userEntityToUserResponse(usersService.findById(id)));
 	}

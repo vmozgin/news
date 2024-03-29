@@ -1,6 +1,5 @@
 package com.example.news.service;
 
-import com.example.news.aop.CheckCommentPermission;
 import com.example.news.entity.CommentEntity;
 import com.example.news.entity.NewsEntity;
 import com.example.news.exception.EntityNotFoundException;
@@ -38,16 +37,14 @@ public class CommentService {
 	}
 
 	@Transactional
-	@CheckCommentPermission
-	public CommentEntity update(Long id, CommentEntity commentEntity, Long authorId) {
+	public CommentEntity update(Long id, CommentEntity commentEntity) {
 		CommentEntity existedComment = findById(id);
 		BeanUtils.copyNonNullProperties(commentEntity, existedComment);
 
 		return commentRepository.save(existedComment);
 	}
 
-	@CheckCommentPermission
-	public void delete(Long id, Long authorId) {
+	public void delete(Long id) {
 		findById(id);
 		commentRepository.deleteById(id);
 	}

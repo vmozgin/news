@@ -25,9 +25,9 @@ public interface CommentMapper {
 	@Mapping(target = "authorId", source = "author.id")
 	CommentResponse commentEntityToCommentResponse(CommentEntity source);
 
-	@Mapping(target = "news.id", source = "newsId")
+	@Mapping(target = "news.id", source = "source.newsId")
 	@Mapping(target = "author.id", source = "authorId")
-	CommentEntity commentCreateRequestToCommentEntity(CommentCreateRequest source);
+	CommentEntity commentCreateRequestToCommentEntity(CommentCreateRequest source, Long authorId);
 
 	@Mapping(target = "id", source = "commentId")
 	CommentEntity commentUpdateRequestToCommentEntity(CommentUpdateRequest source, Long commentId);

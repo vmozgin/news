@@ -19,6 +19,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,6 +52,7 @@ public class CategoryController {
 			)
 	})
 	@GetMapping
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER', 'ROLE_MODERATOR')")
 	public ResponseEntity<CategoryListResponse> findAll(
 			@RequestParam Integer pageNumber,
 			@Min(value = 1, message = "Значение 'pageSize' должно быть больше 0") @RequestParam Integer pageSize
@@ -77,6 +79,7 @@ public class CategoryController {
 			)
 	})
 	@PostMapping
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')")
 	public ResponseEntity<CategoryResponse> create(@RequestBody @Valid CategoryRequest categoryRequest) {
 		CategoryEntity newCategory = categoryService.create(categoryMapper.categoryRequestToCategoryEntity(categoryRequest));
 		return ResponseEntity.status(HttpStatus.CREATED)
@@ -101,6 +104,7 @@ public class CategoryController {
 			)
 	})
 	@PutMapping("/{id}")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')")
 	public ResponseEntity<CategoryResponse> update(@PathVariable Long id, @RequestBody @Valid CategoryRequest request) {
 		CategoryEntity categoryEntity = categoryMapper.categoryRequestToCategoryEntity(request);
 		return ResponseEntity.ok(categoryMapper.categoryEntityToCategoryResponse(categoryService.update(id, categoryEntity)));
@@ -121,6 +125,7 @@ public class CategoryController {
 			)
 	})
 	@DeleteMapping("/{id}")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MODERATOR')")
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		categoryService.delete(id);
 		return ResponseEntity.ok().build();
@@ -144,6 +149,7 @@ public class CategoryController {
 			)
 	})
 	@GetMapping("/{id}")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER', 'ROLE_MODERATOR')")
 	public ResponseEntity<CategoryResponse> findById(@PathVariable Long id) {
 		return ResponseEntity.ok(categoryMapper.categoryEntityToCategoryResponse(categoryService.findById(id)));
 	}

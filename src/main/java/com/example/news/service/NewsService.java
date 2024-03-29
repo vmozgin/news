@@ -1,7 +1,5 @@
 package com.example.news.service;
 
-import com.example.news.aop.CheckCommentPermission;
-import com.example.news.aop.CheckNewsPermission;
 import com.example.news.entity.NewsEntity;
 import com.example.news.exception.EntityNotFoundException;
 import com.example.news.model.news.NewsFilter;
@@ -34,16 +32,14 @@ public class NewsService {
 	}
 
 	@Transactional
-	@CheckNewsPermission
-	public NewsEntity update(Long id, NewsEntity newsEntity, Long authorId) {
+	public NewsEntity update(Long id, NewsEntity newsEntity) {
 		NewsEntity existedNews = findById(id);
 		BeanUtils.copyNonNullProperties(newsEntity, existedNews);
 
 		return newsRepository.save(existedNews);
 	}
 
-	@CheckNewsPermission
-	public void delete(Long id, Long authorId) {
+	public void delete(Long id) {
 		findById(id);
 		newsRepository.deleteById(id);
 	}
