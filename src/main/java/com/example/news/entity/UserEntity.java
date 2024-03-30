@@ -8,7 +8,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
@@ -34,9 +36,9 @@ public class UserEntity {
 	private List<NewsEntity> news = new ArrayList<>();
 	@OneToMany(mappedBy = "author", cascade = CascadeType.ALL)
 	private List<CommentEntity> comments = new ArrayList<>();
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "user", cascade = CascadeType.ALL)
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	@EqualsAndHashCode.Exclude
 	@ToString.Exclude
 	@Builder.Default
-	private List<Role> roles = new ArrayList<>();
+	private Set<Role> roles = new HashSet<>();
 }

@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.util.Objects;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -29,7 +30,7 @@ public class Role {
 	private RoleType authority;
 
 	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "username")
+	@JoinColumn(name = "user_id")
 	@EqualsAndHashCode.Exclude
 	@ToString.Exclude
 	private UserEntity user;
@@ -43,5 +44,18 @@ public class Role {
 		role.setAuthority(type);
 
 		return role;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		Role role = (Role) o;
+		return authority == role.authority;
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(authority);
 	}
 }

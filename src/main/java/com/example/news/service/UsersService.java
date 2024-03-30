@@ -3,7 +3,6 @@ package com.example.news.service;
 import com.example.news.entity.UserEntity;
 import com.example.news.exception.EntityNotFoundException;
 import com.example.news.repository.UserRepository;
-import com.example.news.utils.BeanUtils;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
@@ -35,8 +34,13 @@ public class UsersService {
 	@Transactional
 	public UserEntity update(Long id, UserEntity userEntity) {
 		UserEntity existedUser = findById(id);
-		BeanUtils.copyNonNullProperties(userEntity, existedUser);
+		existedUser.setName(userEntity.getName());
 		existedUser.setPassword(passwordEncoder.encode(userEntity.getPassword()));
+
+
+		existedUser.getRoles().removeIf(role -> !userEntity.getRoles().contains(role));
+		existedUser.getRoles().addAll(userEntity.getRoles());
+		existedUser.getRoles().forEach(role -> role.setUser(existedUser));
 
 		return userRepository.save(existedUser);
 	}
