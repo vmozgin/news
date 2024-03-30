@@ -27,61 +27,51 @@ public class PermissionAspect {
 
 	@Before("@annotation(com.example.news.aop.CheckCommentPermission)")
 	public void checkCommentPermission() {
-		HttpServletRequest request = getRequest();
-		var pathVariables = getPathVariables(request);
-		Long commentId = Long.valueOf(pathVariables.get("id"));
-
+		Long commentId = extractIdFromPathVariable();
 		Long actualAuthorId = commentService.findById(commentId).getAuthor().getId();
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		AppUserPrincipal userDetails = (AppUserPrincipal) authentication.getPrincipal();
-		Long requestAuthorId = userDetails.getId();
 
-		if (authentication.getAuthorities().stream()
-				.allMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_USER"))) {
-			if (!actualAuthorId.equals(requestAuthorId)) {
-				throw new AccessDeniedException(
-						String.format("Действие запрещено, пользователь с id '%s' не является автором комментария", requestAuthorId));
-			}
-		}
+		checkPermission(actualAuthorId);
 	}
 
 	@Before("@annotation(com.example.news.aop.CheckNewsPermission)")
 	public void checkNewsPermission() {
-		HttpServletRequest request = getRequest();
-		var pathVariables = getPathVariables(request);
-		Long newsId = Long.valueOf(pathVariables.get("id"));
-
+		Long newsId = extractIdFromPathVariable();
 		Long actualAuthorId = newsService.findById(newsId).getAuthor().getId();
 
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		AppUserPrincipal userDetails = (AppUserPrincipal) authentication.getPrincipal();
-		Long requestAuthorId = userDetails.getId();
-
-		if (authentication.getAuthorities().stream()
-				.allMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_USER"))) {
-			if (!actualAuthorId.equals(requestAuthorId)) {
-				throw new AccessDeniedException(
-						String.format("Действие запрещено, пользователь с id '%s' не является автором новости", requestAuthorId));
-			}
-		}
+		checkPermission(actualAuthorId);
 	}
 
 	@Before("@annotation(com.example.news.aop.CheckUserRole)")
 	public void checkUserRole() {
-		HttpServletRequest request = getRequest();
-		var pathVariables = getPathVariables(request);
-		Long requestUserId = Long.valueOf(pathVariables.get("id"));
-
+		Long requestUserId = extractIdFromPathVariable();
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		if (authentication != null && authentication.getPrincipal() instanceof AppUserPrincipal userDetails) {
-			if (authentication.getAuthorities().stream()
-					.allMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_USER"))) {
-				Long currentUserId = userDetails.getId();
-				if (!currentUserId.equals(requestUserId)) {
-					throw new AccessDeniedException("Операция недоступна для текущего пользователя");
-				}
+		AppUserPrincipal userDetails = (AppUserPrincipal) authentication.getPrincipal();
+		Long currentUserId = userDetails.getId();
+
+		if (hasOnlyRoleUser(authentication)) {
+			if (!currentUserId.equals(requestUserId)) {
+				throw new AccessDeniedException("Операция недоступна для текущего пользователя");
 			}
 		}
+	}
+
+	private void checkPermission(Long actualAuthorId) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		AppUserPrincipal userDetails = (AppUserPrincipal) authentication.getPrincipal();
+		Long requestAuthorId = userDetails.getId();
+
+		if (hasOnlyRoleUser(authentication)) {
+			if (!actualAuthorId.equals(requestAuthorId)) {
+				throw new AccessDeniedException(
+						String.format("Действие запрещено, пользователь с id '%s' не является автором", requestAuthorId));
+			}
+		}
+	}
+
+	private Long extractIdFromPathVariable() {
+		HttpServletRequest request = getRequest();
+		var pathVariables = getPathVariables(request);
+		return Long.valueOf(pathVariables.get("id"));
 	}
 
 	private HttpServletRequest getRequest() {
@@ -93,5 +83,10 @@ public class PermissionAspect {
 
 	private Map<String, String> getPathVariables(HttpServletRequest request) {
 		return (Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
+	}
+
+	private boolean hasOnlyRoleUser(Authentication authentication) {
+		return authentication.getAuthorities().stream()
+				.allMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ROLE_USER"));
 	}
 }
